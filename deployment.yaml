@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: meu-site-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: meu-site-ci
+  template:
+    metadata:
+      labels:
+        app: meu-site-ci
+    spec:
+      containers:
+      - name: meu-site
+        image: devmoisesalves/meu-site-prod:latest # O robô vai atualizar esta imagem
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: meu-site-service
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 80
+  selector:
+    app: meu-site-ci
