@@ -1,4 +1,4 @@
-name: CI/CD Pipeline Deployment
+name: CI/CD Local Minikube
 
 on:
   push:
@@ -6,28 +6,23 @@ on:
       - master
 
 jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest
+  deploy-local:
+    runs-on: self-hosted  # Isso manda rodar no SEU computador
 
     steps:
-    - name: Checkout Code
+    - name: Checkout do Código
       uses: actions/checkout@v4
 
-    - name: Build Docker Image
+    - name: Construir Imagem Docker (Direto no Minikube)
       run: |
+        # Aponta o Docker para dentro do Minikube (para não precisar de Registry)
+        eval $(minikube -p minikube docker-env)
         docker build -t devmoisesalves/meu-site-prod:latest .
 
-    - name: K8s Auth - Set KUBECONFIG
+    - name: Deploy no Kubernetes
       run: |
-        mkdir -p $HOME/.kube
-        echo "${{ secrets.KUBE_TOKEN }}" > $HOME/.kube/config
-      
-    - name: Deploy to Kubernetes
-      uses: azure/k8s-deploy@v5
-      with:
-        kubeconfig: $HOME/.kube/config
-        action: deploy
-        strategy: basic
-        manifests: |
-          ./deployment.yaml
-        images: devmoisesalves/meu-site-prod:latest
+        # Aplica a configuração
+        minikube kubectl -- apply -f deployment.yaml
+        
+        # Força o Kubernetes a atualizar (caso a imagem tenha mudado)
+        minikube kubectl -- rollout restart deployment/meu-site-deployment
