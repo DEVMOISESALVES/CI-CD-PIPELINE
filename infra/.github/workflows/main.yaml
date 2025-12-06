@@ -1,0 +1,26 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build-and-deploy:
+    runs-on: self-hosted # Usando o seu runner local"
+
+steps:
+  - name: Checkout Code
+    uses: actions/checkout@v4
+
+  - name: Build Docker Image
+    run: |
+      #Configura o Docker para usar o daemon do Minikube
+      eval $(minikube -p minikube docker-env)
+      docker build -t devmoisesalves/meu-site-prod:latest .
+
+  - name: Deploy do Kubernetes
+    run: |
+      minikube kubectl -- apply -f deployment.yaml
+      minikube kubectl -- rollout restart deployment meu-site-deployment
+
