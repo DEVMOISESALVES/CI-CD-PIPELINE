@@ -1,25 +1,15 @@
 terraform {
-    required_providers {
-        docker = {
-            source = "kreuzwrker/docker"
-            version = "~>3.0.1"
-        }
+  required_providers {
+    local = {
+      source = "hashicorp/local"
+      version = "2.4.0"
     }
+  }
 }
 
-provider "docker" {}
+provider "local" {}
 
-resource "docker_image" "nginx" {
-    name        ="nginx:latest"
-    keep_locally = false
-}
-
-resource "docker_container" "nginx" {
-    image = docker_image.nginx.image_id
-    name = "tutorial-terraform-docker"
-
-    ports {
-        internal = 80
-        external = 8093 # Porta diferente do Wordpress que é 8092 para não dar conflito
-    }
+resource "local_file" "devops_log" {
+  content  = "Infraestrutura criada pelo Pipeline do Moises! Data: 2025"
+  filename = "${path.module}/infra-deploy.txt"
 }
